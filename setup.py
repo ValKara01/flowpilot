@@ -25,4 +25,5 @@ setup(name="flowpilot",
                                         "thermald_=selfdrive.thermald.thermald:main", # thermald name is reserverd
                                         "flowinit=selfdrive.manager.flowinitd:main"]}
      )
-
+from common.params import Params
+Params().put("UserToken", "000000")
