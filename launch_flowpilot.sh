@@ -13,7 +13,7 @@ export ZMQ_MESSAGING_PROTOCOL="TCP" # TCP, INTER_PROCESS, SHARED_MEMORY
 #export DEVICE_ADDR="127.0.0.1" # connect to external device running flowpilot over same network. useful for livestreaming.
 
 export SIMULATION="1"
-export FINGERPRINT="FORD F-150 13TH GEN"
+export FINGERPRINT="F150"
 
 ## android specific ##
 export USE_SNPE="0" # only works for snapdragon devices.
