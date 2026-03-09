@@ -1,51 +1,26 @@
-# hard-forked from https://github.com/commaai/openpilot/tree/05b37552f3a38f914af41f44ccc7c633ad152a15/selfdrive/car/ford/fordcan.py
-from common.numpy_fast import clip
-from selfdrive.car.ford.values import MAX_ANGLE
-
-
-def create_steer_command(packer, angle_cmd, enabled, lkas_state, angle_steers, curvature, lkas_action):
-  """Creates a CAN message for the Ford Steer Command."""
-
-  #if enabled and lkas available:
-  if enabled and lkas_state in (2, 3):  # and (frame % 500) >= 3:
-    action = lkas_action
-  else:
-    action = 0xf
-    angle_cmd = angle_steers/MAX_ANGLE
-
-  angle_cmd = clip(angle_cmd * MAX_ANGLE, - MAX_ANGLE, MAX_ANGLE)
-
-  values = {
-    "Lkas_Action": action,
-    "Lkas_Alert": 0xf,             # no alerts
-    "Lane_Curvature": clip(curvature, -0.01, 0.01),   # is it just for debug?
-    #"Lane_Curvature": 0,   # is it just for debug?
-    "Steer_Angle_Req": angle_cmd
-  }
-  return packer.make_can_msg("Lane_Keep_Assist_Control", 0, values)
-
-
-def create_lkas_ui(packer, main_on, enabled, steer_alert):
-  """Creates a CAN message for the Ford Steer Ui."""
-
-  if not main_on:
-    lines = 0xf
-  elif enabled:
-    lines = 0x3
-  else:
-    lines = 0x6
-
-  values = {
-    "Set_Me_X80": 0x80,
-    "Set_Me_X45": 0x45,
-    "Set_Me_X30": 0x30,
-    "Lines_Hud": lines,
-    "Hands_Warning_W_Chime": steer_alert,
-  }
-  return packer.make_can_msg("Lane_Keep_Assist_Ui", 0, values)
-
 def spam_cancel_button(packer):
   values = {
     "Cancel": 1
   }
   return packer.make_can_msg("Steering_Buttons", 0, values)
+
+def spam_resume_button(packer):
+  values = {
+    "Resume": 1
+  }
+  return packer.make_can_msg("Steering_Buttons", 0, values)
+
+def ParkAid_Data(packer, active, apply_steer, sappControlState):
+  # apaOn 1 = APA Off, 2 = APA On | apaReq 0 = No angle request, 1 = Request
+  if sappControlState in [1, 2] and active:
+    apaOn = 2
+    apaReq = 1
+  else:
+    apaOn = 1
+    apaReq = 0
+  values = {
+    "ApaSys_D_Stat": apaOn,
+    "EPASExtAngleStatReq": apaReq,
+    "ExtSteeringAngleReq2": apply_steer,
+  }
+  return packer.make_can_msg("ParkAid_Data", 2, values)
